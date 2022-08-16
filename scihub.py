@@ -26,6 +26,8 @@ from bs4 import BeautifulSoup
 from sanitize_filename import sanitize
 import re
 import csv
+from os import path
+from datetime import datetime
 
 # Fix some of the data formatting
 with open("artikelen.csv") as f:
@@ -116,7 +118,14 @@ for i, article in enumerate(articles):
             pdf = req.get(pdf_url)
             pdf.raise_for_status()
 
-            pdf_filename = re.sub("\s", "_", f"{sanitize(title)}.pdf")
+            #pdf_filename = re.sub("\s", "_", f"{sanitize(title)}.pdf")
+            first_author = article["authors"].split(",")[0]
+            pdf_filename = f'{first_author} {article["year"]}.pdf'
+
+            # prevent collisions
+            if path.exists(pdf_filename):
+                pdf_filename = f'{first_author} {article["year"]} {datetime.now().timestamp()}.pdf'
+
             with open(pdf_filename, 'wb') as f:
                 f.write(pdf.content)
 
